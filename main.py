@@ -1,4 +1,4 @@
-# Automatic morphological alignment and clustering
+# Morphological alignment and clustering
 # May 2014
 # Jackson Lee
 # jsllee.phon@gmail.com
@@ -965,10 +965,6 @@ doAlignment = raw_input('do alignment? (\'y\' for yes) ')
 ##--- end of initialization ----------------------------------------------------#
 
 
-###################################################################
-## END work with authentic English data AND syntactic neighbors
-###################################################################
-
 print '\ndata file:', fname
 print
 
@@ -999,35 +995,7 @@ latexfile.write('\\qtreepadding=0.5pt\n')
 ###########################
 
 # get data from .txt to the list "source"
-
-#if fname == 'spanishConjugationAsciiPhoneme100.csv':
-#    # indices for the spanish conjugation data:
-#    #     0 - infinitive, 1 - infinitive, 2 - gerund, 3 - past participle
-#    #     4-9: present indicative
-#    #     10-15: preterite indicative
-#    #     34-39: present subjunctive
-#    source = [sublist(x.replace('\n','').split(delimiter), [0,4,5,6,7,8,9]) for x in open(fname)]
-#    COLUMNS = 6
-#elif fname == 'arabicVerbs21.csv':
-#    # indices for the arabic conjugation data:
-#    #     0 - "he"+present perfect, e.g., kataba ``he wrote''
-#    #     1 - english verb meaning
-#    #     2-11: present perfect
-#    #     12-21: present imperfect
-#    #           I, thou (m), thou(f), he, she, we, you(m), you(f), they(m), they(f)
-##    source = [sublist(x.split(delimiter), [0,2,3,4,5,6,7,8,9,10,11]) for x in open(fname)]
-#    source = [sublist(x.replace('\n','').split(delimiter), [0]+list(range(2,7))+list(range(12,17))) for x in open(fname)]
-#    COLUMNS = 10
-#else:
-#    source = [x.replace('\n','').split(delimiter)[:COLUMNS+1] for x in open(fname, 'rU')]
-
 source = readCSV(fname)
-
-#for x in source:
-#    print x
-#raw_input()
-
-#ROWS = len(source)
 
 print 'ROWS:', ROWS
 print 'COLUMNS:', COLUMNS
@@ -1226,6 +1194,7 @@ while True:
 costSavedMasterList.append(costSavedList)
 print 'Costs saved:', sorted(costSavedList, reverse=True)
 print 'Total cost saved =', sum(costSavedList)
+
 # raw_input()
 
 
@@ -1233,181 +1202,21 @@ print 'Total cost saved =', sum(costSavedList)
 
 
 # print tree node info to text file
-fnode = open('nodesFinal.csv','w')
-print >>fnode, 'index\tmother\tdaughters1\tdaughters2\tleaves1\tleaves2'
-nodeList = sorted(treeNodeDict.items())[:ROWS-1]
-for (nodeIndex, nodeContent) in nodeList:
-    print >>fnode, nodeIndex, '\t', nodeContent.MyMother, '\t', nodeContent.MyLeftDaughter, '\t', nodeContent.MyRightDaughter, '\t',
-    if nodeContent.MyLeftDaughterLeaves:
-        print >>fnode, ' '.join(nodeContent.MyLeftDaughterLeaves), '\t',
-    else:
-        print >>fnode, nodeContent.MyLeftDaughterLeaves, '\t',
-    if nodeContent.MyRightDaughterLeaves:
-        print >>fnode, ' '.join(nodeContent.MyRightDaughterLeaves)
-    else:
-        print >>fnode, nodeContent.MyRightDaughterLeaves
-fnode.close()
 
-# print tree node info to latex (complete info)
-latexfile.write('\\newpage\n\n')
-latexfile.write('\\large{\n')
-latexfile.write('Tree node information (complete)\n\n')
-latexfile.write('\\begin{longtable}{p{.5in}p{.7in}p{.8in}p{.8in}|p{.1in}p{4in}p{.1in}|p{.1in}p{4in}}\n')
-latexfile.write('\\toprule\n')
-latexfile.write('Index & Mother & Daughter1 & Daughter2 & & Leaves1 & & & Leaves2 \\\ \n')
-latexfile.write('\\midrule\n')
-
-for (nodeIndex, nodeContent) in nodeList:
-    if nodeContent.MyMother:
-        myMother_str = str(nodeContent.MyMother)
-    else:
-        myMother_str = 'None'
-    latexfile.write('%d & %s & %d & %d & & ' % (nodeIndex, myMother_str, nodeContent.MyLeftDaughter, nodeContent.MyRightDaughter))
-    latexfile.write('%s & & & ' % (' '.join(nodeContent.MyLeftDaughterLeaves)))
-    latexfile.write('%s \\\ \n' % (' '.join(nodeContent.MyRightDaughterLeaves)))
-
-latexfile.write('\\bottomrule\n')
-latexfile.write('\\end{longtable}\n')
-latexfile.write('} % end of large font size\n')
-
-# print tree node info to latex (only nodes with two leaves)
-latexfile.write('\\newpage\n\n')
-latexfile.write('\\large{\n')
-latexfile.write('Tree node information (only nodes with two leaves)\n\n')
-latexfile.write('\\begin{longtable}{p{.5in} | p{.1in} p{.5in}p{.7in}p{.8in}p{.8in}p{1in}p{1in}}\n')
-latexfile.write('\\toprule\n')
-latexfile.write('Count & & Index & Mother & Daughter1 & Daughter2 & Leaves1 & Leaves2 \\\ \n')
-latexfile.write('\\midrule\n')
-
-nodeCount = 0
-for (nodeIndex, nodeContent) in nodeList:
-    if len(nodeContent.MyDaughterLeaves) > 2:
-        continue
-    nodeCount += 1
-    latexfile.write('%d & & %d & %s & %d & %d & ' % (nodeCount, nodeIndex, nodeContent.MyMother, nodeContent.MyLeftDaughter, nodeContent.MyRightDaughter))
-    latexfile.write('%s & ' % (' '.join(nodeContent.MyLeftDaughterLeaves)))
-    latexfile.write('%s \\\ \n' % (' '.join(nodeContent.MyRightDaughterLeaves)))
-
-latexfile.write('\\bottomrule\n')
-latexfile.write('\\end{longtable}\n')
-latexfile.write('} % end of large font size\n')
-
-
-costSavedMasterTupleList = []
-for costSavedIndividualList in costSavedMasterList:
-    costSavedMasterTupleList.append((sum(costSavedIndividualList),costSavedIndividualList))
-
-costSavedMasterTupleList.sort(reverse=True)
-
-numberOfMerges = len(costSavedMasterList[0])
-
-#latexfile.write('\\begin{longtable}{')
-#for i in range(numberOfMerges+1):
-#    latexfile.write('l')
-#latexfile.write('}\n')
-#latexfile.write('\\break\n')
-
-#latexfile.write('\\end{landscape}\n\n')
-
-
-# output stems and improved affixes, based on longest common subsequences
-
-latexfile.write('\\newpage\n\n')
-latexfile.write('stems and improved affixes\n\n')
-latexfile.write('\\begin{longtable}{l|c|%s}\n' % ('l' * (COLUMNS)))
-
-
-for stmplx in stemplexListCopy:
-
-    latexfile.write('\\toprule [3pt]\n')
-    stem = stmplx.stems()[0]
-    sourceRow = stmplx.sourceRows()[0]
-    improvedSourceRowDictItems = stmplx.improvedSourcedRowDictList()[0].items()
-    improvedSourceRowBagOfSymbols = stmplx.improvedSourceRowBagOfSymbolsList()[0]
-    improvedSourceRowSubstrings = stmplx.improvedSourcedRowSubstringDictList()[0]
-
-    if stmplx.tree() == 'poder':
-        print improvedSourceRowDictItems
-        print
-        print improvedSourceRowBagOfSymbols
-        print
-        print improvedSourceRowSubstrings
-        raw_input()
-
-    ## based on bag-of-symbols representations ##
-
-    maxLenInBagOfSymbols = len(max(improvedSourceRowBagOfSymbols, key=len))
-
-    for i in range(len(improvedSourceRowBagOfSymbols)):
-        while len(improvedSourceRowBagOfSymbols[i]) < maxLenInBagOfSymbols:
-            improvedSourceRowBagOfSymbols[i].append('')
-
-    improvedSourceRowBagOfSymbolsTransposed = numpy.array(improvedSourceRowBagOfSymbols).T
-
-    for (e,improvedRow) in enumerate(improvedSourceRowBagOfSymbolsTransposed):
-        if e == 0:
-            stemShow = stem
-            bagOfSymbolsShow = 'bag-of-symbols'
-        else:
-            stemShow = ''
-            bagOfSymbolsShow = ''
-        latexfile.write('%s & %s & %s \\\\ \n' % (bagOfSymbolsShow, stemShow, ' & '.join(improvedRow)))
-
-    latexfile.write('\\midrule \n')
-#    latexfile.write('[5pt] \n')
-
-    ## based on longest common subsequences ##
-
-    for (e,(stem_tuple, sourceWordList)) in enumerate(improvedSourceRowDictItems):
-        if e == 0:
-            subsequencesShow = 'subsequences'
-        else:
-            subsequencesShow = ''
-
-        finalSourceWordList = list()
-        for sourceWordSublist in sourceWordList:
-            finalSourceWordList.append(' '.join(sourceWordSublist))
-
-        try:
-            latexfile.write('%s & %s & %s \\\\ \n' % (subsequencesShow, ''.join(stem_tuple), ' & '.join(finalSourceWordList)))
-        except:
-            print stem_tuple
-            print sourceWordList
-            raw_input()
-
-    latexfile.write('\\midrule \n')
-#    latexfile.write('[5pt] \n')
-
-    ## based on longest common substrings ##
-
-    for (k,(stem,improvedRow)) in enumerate(improvedSourceRowSubstrings.items()):
-
-        maxLenInSubstrings = len(max(improvedRow, key=len))
-
-        for i in range(len(improvedRow)):
-            while len(improvedRow[i]) < maxLenInSubstrings:
-                improvedRow[i].append('')
-
-        improvedSourceRowSubstringTransposed = numpy.array(improvedRow).T
-
-        for (e,improvedRow) in enumerate(improvedSourceRowSubstringTransposed):
-            if e == 0 and k == 0:
-                substringsShow = 'substrings'
-            else:
-                substringsShow = ''
-            if e == 0:
-                stemShow = stem
-            else:
-                stemShow = ''
-
-            latexfile.write('%s & %s & %s \\\\ \n' % (substringsShow, stemShow, ' & '.join(improvedRow)))
-
-        latexfile.write('\\midrule \n')
-
-
-    latexfile.write('\\bottomrule  [3pt] \\\\ [10pt] \n')
-
-latexfile.write('\\end{longtable}\n')
+#fnode = open('nodesFinal.csv','w')
+#print >>fnode, 'index\tmother\tdaughters1\tdaughters2\tleaves1\tleaves2'
+#nodeList = sorted(treeNodeDict.items())[:ROWS-1]
+#for (nodeIndex, nodeContent) in nodeList:
+#    print >>fnode, nodeIndex, '\t', nodeContent.MyMother, '\t', nodeContent.MyLeftDaughter, '\t', nodeContent.MyRightDaughter, '\t',
+#    if nodeContent.MyLeftDaughterLeaves:
+#        print >>fnode, ' '.join(nodeContent.MyLeftDaughterLeaves), '\t',
+#    else:
+#        print >>fnode, nodeContent.MyLeftDaughterLeaves, '\t',
+#    if nodeContent.MyRightDaughterLeaves:
+#        print >>fnode, ' '.join(nodeContent.MyRightDaughterLeaves)
+#    else:
+#        print >>fnode, nodeContent.MyRightDaughterLeaves
+#fnode.close()
 
 
 latexfile.write('\\end{document}\n')
@@ -1415,33 +1224,7 @@ latexfile.close()
 
 
 print 'All done!\n'
-print 
-
-
-
-while True:
-    what = raw_input('What to do now? ')
-    what = what.lower()
-    words = what.split()
-
-    if (what == "exit") or (not what):
-        break
-
-    elif words[0] == 'pair':
-        row1 = int(words[1]) - 1
-        row2 = int(words[2]) - 1
-        align_pair(row1, row2) # print in latex, showPair.tex
-
-    elif words[0] == 'group':
-        print 'Number of grouplexes: ', len(grouplexList)
-        which = raw_input('Which group to examine? ')
-        grouplexList[int(which)].printOutput()
-
-    else:
-        print "Sorry, I don't understand."
-
-print
-print latexfilename
+print 'latex file name: ', latexfilename
 print
 
 
